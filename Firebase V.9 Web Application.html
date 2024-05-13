@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Firebase v.9 modular</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
+    <style>
+      .container {
+        font-size: clamp(16px, 2.5vw, 25px);
+        margin-top: 20px;
+        text-align: center;
+      }
+      .temperature {
+        background-color: darkcyan;
+        color: white;
+        padding-top: 10px;
+        padding-right: 20px;
+        padding-bottom: 10px;
+        padding-left: 20px;
+        border-radius: 10px;
+      }
+      .humidity {
+        background-color: steelblue;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 10px;
+      }
+      button {
+        font-size: clamp(16px, 2.5vw, 25px);
+        padding: 10px 20px;
+        margin-bottom: 10px;
+        border-radius: 10px;
+      }
+      .onBtn {
+        background-color: green;
+        color: white;
+      }
+      .offBtn {
+        background-color: crimson;
+        color: white;
+      }
+      .onBtn:hover {
+        background-color: white;
+        color: green;
+        cursor: pointer;
+      }
+      .offBtn:hover {
+        background-color: white;
+        color: crimson;
+        cursor: pointer;
+      }
+      body {
+        background-color: rgb(68, 68, 68);
+      }
+      .myChart {
+        margin: 20px 20px;
+      }
+      .chart-container {
+        height: 70vh;
+        width: 100vw;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <p class="temperature">อุณหภูมิ = <span id="temp"></span> องศาเซลเซียส</p>
+      <p class="humidity">ความชื้น = <span id="humi"></span> %</p>
+    </div>
+
+    <div class="chart-container">
+      <canvas id="myChart" class="myChart"></canvas>
+    </div>
+
+    <script type="module">
+      // Import the functions you need from the SDKs you need
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.1/firebase-app.js";
+      // TODO: Add SDKs for Firebase products that you want to use
+      // https://firebase.google.com/docs/web/setup#available-libraries
+
+      // Your web app's Firebase configuration
+      const firebaseConfig = {
+        apiKey: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        authDomain: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        databaseURL: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        projectId: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        storageBucket: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        messagingSenderId: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        appId: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+
+      import {
+        getDatabase,
+        ref,
+        onValue,
+        set,
+      } from "https://www.gstatic.com/firebasejs/9.9.1/firebase-database.js";
+
+      const db = getDatabase();
+
+      let tempPoint, humiPoint;
+
+      const firebaseTempRef = ref(db, "xxxxx key ของอุณหภูมิ xxxxx");
+      onValue(firebaseTempRef, (snapshot) => {
+        let temp = snapshot.val();
+        tempPoint = temp.toPrecision(4);
+        document.getElementById("temp").innerHTML = tempPoint;
+      });
+
+      const firebaseHumiRef = ref(db, "xxxxx key ของความชื้น xxxxx");
+      onValue(firebaseHumiRef, (snapshot) => {
+        let humi = snapshot.val();
+        humiPoint = humi.toPrecision(4);
+        document.getElementById("humi").innerHTML = humiPoint;
+        updateChart();
+      });
+      
+      let chartClick = document.getElementById("myChart");
+
+      function updateChart() {
+        myChart.data.labels.push("");
+        myChart.data.labels.shift();
+        myChart.data.datasets[0].data.push(tempPoint);
+        myChart.data.datasets[0].data.shift();
+        myChart.data.datasets[1].data.push(humiPoint);
+        myChart.data.datasets[1].data.shift();
+        myChart.update();
+      }
+
+      const temp = Array(20)
+        .fill()
+        .map(function rand() {
+          return Math.random() * 20 + 20;
+        });
+      const humi = Array(20)
+        .fill()
+        .map(function rand() {
+          return Math.random() * 30 + 50;
+        });
+
+      const ctx = document.getElementById("myChart").getContext("2d");
+      const myChart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+          datasets: [
+            {
+              label: "อุณหภมิ (C)",
+              data: temp,
+              backgroundColor: "rgba(54, 162, 235, 1)",
+              borderColor: "rgba(54, 162, 235, 1)",
+              borderWidth: 3,
+              tension: 0.3,
+            },
+            {
+              label: "ความชื้น (%)",
+              data: humi,
+              backgroundColor: "rgba(255, 206, 86, 1)",
+              borderColor: "rgba(255, 206, 86, 1)",
+              borderWidth: 3,
+              tension: 0.3,
+            },
+          ],
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: {
+                color: "rgba(255, 255, 255, 0.2)",
+              },
+              ticks: {
+                color: "white",
+              },
+            },
+            x: {
+              ticks: {
+                color: "white",
+              },
+            },
+          },
+          plugins: {
+            title: {
+              display: true,
+              text: "Tony Space Didactic Training",
+              color: "white",
+            },
+            legend: {
+              labels: {
+                color: "white",
+              },
+            },
+          },
+          responsive: true,
+          maintainAspectRatio: false,
+        },
+      });
+    </script>
+  </body>
+</html>
